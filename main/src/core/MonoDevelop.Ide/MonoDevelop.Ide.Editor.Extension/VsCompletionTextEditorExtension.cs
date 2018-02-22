@@ -186,9 +186,9 @@ namespace MonoDevelop.Ide.Editor.Extension
 						// Some language services wish to process this type char themselves
 						// for their undo requirements
 
-						var trackedEdit = view.Caret.Position.BufferPosition.Snapshot.CreateTrackingSpan (new Span (view.Caret.Position.BufferPosition.Position, 0), SpanTrackingMode.EdgeInclusive);
+						var originalSnapshot = view.Caret.Position.BufferPosition.Snapshot;
 						result = base.KeyPress (descriptor);
-						result &= ReactToEdit (trackedEdit);
+						result &= ReactToEdit (originalSnapshot, descriptor.KeyChar);
 						break;
 					} else {
 						return base.KeyPress (descriptor);
@@ -237,15 +237,19 @@ namespace MonoDevelop.Ide.Editor.Extension
 			//return false;
 		}
 
-		private bool ReactToEdit (ITrackingSpan trackedEdit)
+		private bool ReactToEdit (ITextSnapshot originalSnapshot, char ch)
 		{
 			var currentSnapshot = view.Caret.Position.BufferPosition.Snapshot;
-			var edit = trackedEdit.GetText (currentSnapshot); // TODO: just get the difference between current snapshot and previous snapshot
 
-			if (edit.Length != 1)
+			// Verify that the last edit as part of processing this character is adding the character to the buffer
+			var previousSnapshotVersion = originalSnapshot.Version;
+			while (previousSnapshotVersion.Next != currentSnapshot.Version)
+				previousSnapshotVersion = previousSnapshotVersion.Next;
+
+			if (previousSnapshotVersion.Changes.Count != 1 ||
+				previousSnapshotVersion.Changes[0].NewText.Length != 1 ||
+				previousSnapshotVersion.Changes[0].NewText[0] != ch)
 				return false;
-
-			var ch = edit[0];
 
 			var session = host.GetSession (view);
 
@@ -265,7 +269,7 @@ namespace MonoDevelop.Ide.Editor.Extension
 				} else {
 					var triggered = host.ShouldTriggerCompletion (view, ch, location);
 					if (triggered) {
-						host.TriggerCompletion (view, location);
+						session = host.TriggerCompletion (view, location);
 						session.OpenOrUpdate (view, trigger, location);
 						return false;
 					}
