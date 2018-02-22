@@ -78,10 +78,14 @@ namespace MonoDevelop.Ide.BuildOutputView
 		BuildOutputNode buildOutputNode;
 		Font defaultFontLayout;
 		Size fontRequiredSize;
+		Image currentIcon; 
+
 		int informationContainerWidth;
 		int imageX => ImageSide + ImageLeftPadding + 5;
 	
 		bool IsFirstNode () => buildOutputNode.Parent == null;
+		bool HasErrorIcon () => !IsRowExpanded () && buildOutputNode.HasErrors && (buildOutputNode.NodeType == BuildOutputNodeType.Task || buildOutputNode.NodeType == BuildOutputNodeType.Target);
+		bool IsRowExpanded () => ((Xwt.TreeView) ParentWidget).IsRowExpanded (buildOutputNode);
 
 		public BuildOutputTreeCellView ()
 		{
@@ -160,8 +164,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 
 		void DrawImageRow (Context ctx, Xwt.Rectangle cellArea)
 		{
-			var image = buildOutputNode.GetImage ().WithSize (ImageSide);
-			DrawImage (ctx, cellArea, image, cellArea.Left + ImageLeftPadding);
+			DrawImage (ctx, cellArea, HasErrorIcon () ? Resources.ErrorIcon : currentIcon, cellArea.Left + ImageLeftPadding);
 		}
 
 		void DrawImage (Context ctx, Xwt.Rectangle cellArea, Image image, double x)
@@ -199,6 +202,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 		{
 			base.OnDataChanged();
 			buildOutputNode = GetValue (BuildOutputNodeField);
+			currentIcon = buildOutputNode.GetImage ().WithSize (ImageSide);
 		}
 
 		Color GetSelectedColor ()
