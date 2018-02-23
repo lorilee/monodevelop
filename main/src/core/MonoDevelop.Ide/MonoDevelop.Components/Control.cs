@@ -91,7 +91,7 @@ namespace MonoDevelop.Components
 			if (nativeWidget is T)
 				return (T)nativeWidget;
 			else
-				throw new NotSupportedException ();
+				return (T)ConvertToType (typeof (T), nativeWidget);
 		}
 
 		void OnGtkDestroyed (object sender, EventArgs args)
