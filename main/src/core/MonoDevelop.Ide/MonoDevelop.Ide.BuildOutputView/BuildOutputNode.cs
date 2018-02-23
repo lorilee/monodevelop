@@ -70,6 +70,10 @@ namespace MonoDevelop.Ide.BuildOutputView
 		public virtual string Project { get; set; }
 		public virtual int LineNumber { get; set; }
 
+		public virtual bool ShowsInformation { get; set; }
+		public virtual int Errors { get; set; }
+		public virtual int Warnings { get; set; }
+
 		List<BuildOutputNode> children;
 		public virtual IReadOnlyList<BuildOutputNode> Children => children;
 
@@ -228,6 +232,21 @@ namespace MonoDevelop.Ide.BuildOutputView
 			get => nodes.Any (x => x.HasData);
 			set => throw new NotImplementedException ();
 		}
+
+		public override int Warnings {
+			get => nodes.First ()?.Warnings ?? 0;
+			set => throw new NotImplementedException ();
+		}
+
+		public override int Errors {
+			get => nodes.First ()?.Errors ?? 0;
+			set => throw new NotImplementedException ();
+		}
+
+		public override bool ShowsInformation {
+			get => nodes.First ()?.ShowsInformation ?? false;
+			set => throw new NotImplementedException ();
+		}
 	}
 	
 	class FilteredBuildOutputNode : BuildOutputNode
@@ -258,6 +277,10 @@ namespace MonoDevelop.Ide.BuildOutputView
 		public override string File { get => masterNode.File; set => masterNode.File = value; }
 		public override string Project { get => masterNode.Project; set => masterNode.Project = value; }
 		public override int LineNumber { get => masterNode.LineNumber; set => masterNode.LineNumber = value; }
+
+		public override int Warnings { get => masterNode.Warnings; set => masterNode.Warnings = value; }
+		public override int Errors { get => masterNode.Errors; set => masterNode.Errors = value; }
+		public override bool ShowsInformation { get => masterNode.ShowsInformation; set => masterNode.ShowsInformation = value; }
 
 		public override IReadOnlyList<BuildOutputNode> Children {
 			get {

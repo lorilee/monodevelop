@@ -83,6 +83,8 @@ namespace MonoDevelop.Ide.BuildOutputView
 	
 		bool IsFirstNode () => buildOutputNode.Parent == null;
 
+		bool IsRowExpanded () => ((Xwt.TreeView)ParentWidget).IsRowExpanded (buildOutputNode);
+
 		public BuildOutputTreeCellView ()
 		{
 			BackgroundColor = Styles.CellBackgroundColor;
@@ -123,17 +125,36 @@ namespace MonoDevelop.Ide.BuildOutputView
 			if (!buildOutputNode.HasChildren)
 				return;
 
+			UpdateInformationTextColor (ctx);
+
+			var textStartX = BackgroundBounds.Width - informationContainerWidth;
+
 			var duration = buildOutputNode.GetDurationAsString ();
 			if (duration != "") {
-				
-				UpdateInformationTextColor (ctx);
+				DrawText (ctx, cellArea, textStartX, informationContainerWidth, "0:21 min"); //duration);
+			}
+		
+			if (!IsRowExpanded () && buildOutputNode.ShowsInformation) {
+				textStartX += 55;
 
-				var textStartX = BackgroundBounds.Width - informationContainerWidth;
-				DrawText (ctx, cellArea, textStartX, informationContainerWidth, duration);
+				if (buildOutputNode.Errors > 0) {
+					DrawImage (ctx, cellArea, Resources.ErrorIcon, textStartX);
+					textStartX += ImageSide + 2;
+					DrawText (ctx, cellArea, textStartX, 10, buildOutputNode.Errors.ToString (), trimming: TextTrimming.Word);
+				} else {
+					textStartX += ImageSide + 2;
+				}
+
+				if (buildOutputNode.Warnings > 0) {
+					textStartX += 10;
+					DrawImage (ctx, cellArea, Resources.WarningIcon, textStartX);
+					textStartX += ImageSide + 2;
+					DrawText (ctx, cellArea, textStartX, 10, buildOutputNode.Warnings.ToString (), trimming: TextTrimming.Word);
+				}
 			}
 		}
 
-		void DrawText (Context ctx, Xwt.Rectangle cellArea, double x, double width, string text, Font font = null) 
+		void DrawText (Context ctx, Xwt.Rectangle cellArea, double x, double width, string text, Font font = null, TextTrimming trimming = TextTrimming.WordElipsis) 
 		{
 			if (Math.Max (width, 0) == 0) {
 				return;
@@ -142,7 +163,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 			var descriptionTextLayout = new TextLayout ();
 			descriptionTextLayout.Width = width;
 			descriptionTextLayout.Height = cellArea.Height;
-			descriptionTextLayout.Trimming = TextTrimming.WordElipsis;
+			descriptionTextLayout.Trimming = trimming;
 
 			if (font == null) {
 				descriptionTextLayout.Font = defaultFontLayout.WithWeight (FontWeight.Light);
