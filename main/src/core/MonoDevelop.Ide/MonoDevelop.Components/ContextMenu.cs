@@ -60,12 +60,12 @@ namespace MonoDevelop.Components
 				Items.RemoveAt (Items.Count - 1);
 		}
 
-		public void Show (Gtk.Widget parent, Gdk.EventButton evt)
+		public void Show (Control parent, Gdk.EventButton evt)
 		{
 			Show (parent, evt, null);
 		}
 
-		public void Show (Gtk.Widget parent, Gdk.EventButton evt, Action closeHandler)
+		public void Show (Control parent, Gdk.EventButton evt, Action closeHandler)
 		{
 			#if MAC
 			if (Platform.IsMac) {
@@ -77,7 +77,7 @@ namespace MonoDevelop.Components
 			ContextMenuExtensionsGtk.ShowContextMenu (parent, evt, this, closeHandler);
 		}
 
-		public void Show (Gtk.Widget parent, int x, int y, Action closeHandler, bool selectFirstItem = false)
+		public void Show (Control parent, int x, int y, Action closeHandler, bool selectFirstItem = false)
 		{
 			#if MAC
 			if (Platform.IsMac) {
@@ -90,7 +90,7 @@ namespace MonoDevelop.Components
 		}
 
 
-		public void Show (Gtk.Widget parent, int x, int y)
+		public void Show (Control parent, int x, int y)
 		{
 			Show (parent, x, y, null);
 		}

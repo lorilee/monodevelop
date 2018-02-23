@@ -37,7 +37,7 @@ namespace MonoDevelop.Components
 	#if MAC
 	static class ContextMenuExtensionsMac
 	{
-		public static void ShowContextMenu (Gtk.Widget parent, Gdk.EventButton evt, ContextMenu menu, Action closeHandler)
+		public static void ShowContextMenu (Control parent, Gdk.EventButton evt, ContextMenu menu, Action closeHandler)
 		{
 			if (parent == null)
 				throw new ArgumentNullException ("parent");
@@ -48,24 +48,24 @@ namespace MonoDevelop.Components
 			ShowContextMenu (parent, evt, nsMenu);
 		}
 
-		public static void ShowContextMenu (Gtk.Widget parent, Gdk.EventButton evt, ContextMenu menu)
+		public static void ShowContextMenu (Control parent, Gdk.EventButton evt, ContextMenu menu)
 		{
 			ShowContextMenu (parent, evt, menu, null);
 		}
 
-		public static void ShowContextMenu (Gtk.Widget parent, int x, int y, ContextMenu menu, Action closeHandler, bool selectFirstItem = false)
+		public static void ShowContextMenu (Control parent, int x, int y, ContextMenu menu, Action closeHandler, bool selectFirstItem = false)
 		{
 			var nsMenu = FromMenu (menu, closeHandler, null);
 			ShowContextMenu (parent, x, y, nsMenu, selectFirstItem);
 		}
 
-		public static void ShowContextMenu (Gtk.Widget parent, int x, int y, ContextMenu menu)
+		public static void ShowContextMenu (Control parent, int x, int y, ContextMenu menu)
 		{
 			ShowContextMenu (parent, x, y, menu, null);
 		}
 
 
-		public static void ShowContextMenu (Gtk.Widget parent, int x, int y, NSMenu menu, bool selectFirstItem = false)
+		public static void ShowContextMenu (Control parent, int x, int y, NSMenu menu, bool selectFirstItem = false)
 		{
 			if (parent == null)
 				throw new ArgumentNullException ("parent");
@@ -77,28 +77,37 @@ namespace MonoDevelop.Components
 			Gtk.Application.Invoke ((o, args) => {
 				// Explicitly release the grab because the menu is shown on the mouse position, and the widget doesn't get the mouse release event
 				Gdk.Pointer.Ungrab (Gtk.Global.CurrentEventTime);
-				var nsview = MonoDevelop.Components.Mac.GtkMacInterop.GetNSView (parent);
-				var toplevel = parent.Toplevel as Gtk.Window;
+				var nsview = (NSView)parent;
+				var nswindow = nsview.Window;
+				CoreGraphics.CGPoint pt = CoreGraphics.CGPoint.Empty;
 
-				var nswindow = MonoDevelop.Components.Mac.GtkMacInterop.GetNSWindow (toplevel);
+				if (parent.nativeWidget is Gtk.Widget) {
+					var gtkParent = (Gtk.Widget)parent;
+					var toplevel = gtkParent.Toplevel as Gtk.Window;
+					nswindow = MonoDevelop.Components.Mac.GtkMacInterop.GetNSWindow (toplevel);
 
-				int titleBarOffset;
-				if (toplevel.TypeHint == Gdk.WindowTypeHint.Toolbar && toplevel.Type == Gtk.WindowType.Toplevel && toplevel.Decorated == false) {
-					// Undecorated toplevel toolbars are used for auto-hide pad windows. Don't add a titlebar offset for them.
-					titleBarOffset = 0;
-				} else if (MonoDevelop.Ide.DesktopService.GetIsFullscreen (toplevel)) {
-					titleBarOffset = 0;
+					int titleBarOffset;
+					if (toplevel.TypeHint == Gdk.WindowTypeHint.Toolbar && toplevel.Type == Gtk.WindowType.Toplevel && toplevel.Decorated == false) {
+						// Undecorated toplevel toolbars are used for auto-hide pad windows. Don't add a titlebar offset for them.
+						titleBarOffset = 0;
+					} else if (MonoDevelop.Ide.DesktopService.GetIsFullscreen (toplevel)) {
+						titleBarOffset = 0;
+					} else {
+						titleBarOffset = MonoDevelop.Components.Mac.GtkMacInterop.GetTitleBarHeight () + 12;
+					}
+
+					gtkParent.TranslateCoordinates (toplevel, x, y, out x, out y);
+					pt = new CoreGraphics.CGPoint (x, y);
+					if (!selectFirstItem)
+						pt = new CoreGraphics.CGPoint (pt.X, nswindow.Frame.Height - pt.Y - titleBarOffset);
 				} else {
-					titleBarOffset = MonoDevelop.Components.Mac.GtkMacInterop.GetTitleBarHeight () + 12;
+					pt = new CoreGraphics.CGPoint (x, y);
+					pt = nsview.ConvertPointToView (new CoreGraphics.CGPoint (x, y), null);
 				}
 
-				parent.TranslateCoordinates (parent.Toplevel, x, y, out x, out y);
-
 				if (selectFirstItem) {
-					var pt = new CoreGraphics.CGPoint (x, y);
 					menu.PopUpMenu (menu.ItemAt (0), pt, nsview);
 				} else {
-					var pt = new CoreGraphics.CGPoint (x, nswindow.Frame.Height - y - titleBarOffset);
 					var tmp_event = NSEvent.MouseEvent (NSEventType.LeftMouseDown,
 					                                pt,
 					                                0, 0,
@@ -109,7 +118,7 @@ namespace MonoDevelop.Components
 			});
 		}
 
-		public static void ShowContextMenu (Gtk.Widget parent, Gdk.EventButton evt, NSMenu menu)
+		public static void ShowContextMenu (Control parent, Gdk.EventButton evt, NSMenu menu)
 		{
 			int x = 0, y = 0;
 
