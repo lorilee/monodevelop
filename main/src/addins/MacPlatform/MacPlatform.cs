@@ -978,7 +978,7 @@ namespace MonoDevelop.MacIntegration
 				return base.GetIsFullscreen (window);
 			}
 
-			NSWindow nswin = GtkQuartz.GetWindow (window);
+			NSWindow nswin = window;
 			return (nswin.StyleMask & NSWindowStyle.FullScreenWindow) != 0;
 		}
 
