@@ -49,6 +49,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 		const string binLogExtension = "binlog";
 
 		TreeView treeView;
+		XwtControl treeViewcontrol;
 		CheckBox showDiagnosticsButton;
 		Button saveButton;
 		SearchEntry searchEntry;
@@ -177,6 +178,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 
 
 			treeView = new TreeView ();
+			treeViewcontrol = new XwtControl (treeView);
 			treeView.HeadersVisible = false;
 			treeView.BorderVisible = false;
 			treeView.Accessible.Identifier = "BuildOutputWidget.TreeView";
@@ -315,7 +317,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 				};
 				menu.Items.Add (copyElementMenu);
 
-				menu.Show (treeView.ToGtkWidget (), (int) e.X, (int) e.Y);
+				menu.Show (treeViewcontrol, (int) e.X, (int) e.Y);
 			}
 		}
 
