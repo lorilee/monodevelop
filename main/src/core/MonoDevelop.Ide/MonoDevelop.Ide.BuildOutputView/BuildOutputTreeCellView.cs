@@ -109,8 +109,8 @@ namespace MonoDevelop.Ide.BuildOutputView
 		void DrawFirstNodeInformation (Context ctx, Xwt.Rectangle cellArea)
 		{
 			UpdateInformationTextColor (ctx);
-			var textStartX = BackgroundBounds.Width - informationContainerWidth;
-			DrawText (ctx, cellArea, textStartX, BackgroundBounds.Width - textStartX, GetInformationMessage ());
+			var textStartX = cellArea.X + (cellArea.Width - informationContainerWidth);
+			DrawText (ctx, cellArea, textStartX, cellArea.Width - textStartX, GetInformationMessage ());
 		}
 
 		string GetInformationMessage ()
@@ -128,7 +128,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 				
 				UpdateInformationTextColor (ctx);
 
-				var textStartX = BackgroundBounds.Width - informationContainerWidth;
+				var textStartX = cellArea.Left + (cellArea.Width - informationContainerWidth);
 				DrawText (ctx, cellArea, textStartX, informationContainerWidth, duration);
 			}
 		}
@@ -167,7 +167,7 @@ namespace MonoDevelop.Ide.BuildOutputView
 			}
 
 			var startX = cellArea.Left + imageX;
-			var width = BackgroundBounds.Width - informationContainerWidth - startX;
+			var width = cellArea.Width - informationContainerWidth - startX;
 
 			DrawText (ctx, cellArea, startX, width, buildOutputNode.Message, font);
 		}
